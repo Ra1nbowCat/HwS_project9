@@ -17,6 +17,12 @@ class ViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        if navigationController?.tabBarItem.tag == 0 {
+            urlString = "https://www.hackingwithswift.com/samples/petitions-1.json"
+        } else {
+            urlString = "https://www.hackingwithswift.com/samples/petitions-2.json"
+        }
+        
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Credits", style: .plain, target: self, action: #selector(showCredits))
         let filterButton = UIBarButtonItem(title: "Filter", style: .plain, target: self, action: #selector(find))
         let refreshButton = UIBarButtonItem(barButtonSystemItem: .refresh, target: self, action: #selector(refresh))
@@ -26,12 +32,6 @@ class ViewController: UITableViewController {
     }
     
     @objc func fetchJSON() {
-        
-        if navigationController?.tabBarItem.tag == 0 {
-            urlString = "https://www.hackingwithswift.com/samples/petitions-1.json"
-        } else {
-            urlString = "https://www.hackingwithswift.com/samples/petitions-2.json"
-        }
         
         if let url = URL(string: urlString) {
             if let data = try? Data(contentsOf: url) {
@@ -67,16 +67,19 @@ class ViewController: UITableViewController {
     }
     
     @objc func find() {
-        let ac = UIAlertController(title: "Filter publications", message: nil, preferredStyle: .alert)
-        ac.addTextField()
-        let submitAction = UIAlertAction(title: "Submit", style: .default) {
-            [weak self, weak ac] _ in
-            guard let answer = ac?.textFields?[0].text else { return }
-            self!.submit(answer: answer)
-        }
+            let ac = UIAlertController(title: "Filter publications", message: nil, preferredStyle: .alert)
+            ac.addTextField()
+        DispatchQueue.global(qos: .userInitiated).async {
+            let submitAction = UIAlertAction(title: "Submit", style: .default) {
+                [weak self, weak ac] _ in
+                guard let answer = ac?.textFields?[0].text else { return }
+                self!.submit(answer: answer)
+                }
+            ac.addAction(submitAction)
+            self.present(ac, animated: true)
+            }
         
-        ac.addAction(submitAction)
-        present(ac, animated: true)
+        //performSelector(onMainThread: #selector(UITableView.reloadData), with: nil, waitUntilDone: false)
     }
     
     func submit(answer: String) {
